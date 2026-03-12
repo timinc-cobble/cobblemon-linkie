@@ -1,0 +1,9 @@
+{
+  "authorName": "Timothy Metcalfe",
+  "authorAlias": "timinc",
+  "sidemodPackage": "us.timinc.mc.cobblemon",
+  "cobblemonVersion": "1.7.3",
+  "sidemodName": "Cobblemon Linkie",
+  "modDescription": "What if you could like your Pokémon in the chat?",
+  "templateRepo": "https://github.com/timinc-cobble-help/tims-cobblemon-sidemod-template-1.7.3"
+}

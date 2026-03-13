@@ -4,7 +4,7 @@ v1.7.3-1.0.0
 
 [Modrinth](https://modrinth.com/mod/cobblemon-linkie)
 
-CurseForge
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/cobblemon-linkie)
 
 [GitHub](https://github.com/timinc-cobble/cobblemon-linkie)
 

@@ -112,59 +112,78 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
         Events.PLAYER_CHAT_RECEIVED_ON_SERVER.subscribe { evt ->
             val teamRegex = config.teamPattern.replace("#", "([1-6])").toRegex()
             val stringMsg = evt.message.string
-            if (!teamRegex.containsMatchIn(stringMsg)) return@subscribe
+            val matches = teamRegex.findAll(stringMsg).toList()
+            if (matches.isEmpty()) return@subscribe
 
-            val resultGroups = teamRegex.find(stringMsg)?.groups ?: return@subscribe
-            val completeGroup = resultGroups[0] ?: return@subscribe
-            val indexGroup = resultGroups[1] ?: return@subscribe
-            val targetedIndex = indexGroup.value.toIntOrNull() ?: return@subscribe
-            val targetedPokemon = evt.sender.party().get(targetedIndex - 1) ?: return@subscribe
+            val rebuiltMessage = Component.literal("")
+            var nextTextIndex = 0
 
-            val baseString = config.baseString
-            val pokemonDetail = Component.translatable(
-                baseString,
-                targetedPokemon.form.name.takeIf { it != "Normal" }
-                    ?.let { Component.translatable($$"%1$s %2$s", it, targetedPokemon.species.translatedName) }
-                    ?: targetedPokemon.species.translatedName,
-                targetedPokemon.level,
-                targetedPokemon.secondaryType?.let {
+            for (match in matches) {
+                val completeGroup = match.groups[0] ?: continue
+                val indexGroup = match.groups[1]
+                val targetedPokemon = indexGroup
+                    ?.value
+                    ?.toIntOrNull()
+                    ?.let { evt.sender.party().get(it - 1) }
+
+                if (completeGroup.range.first > nextTextIndex) {
+                    rebuiltMessage.append(Component.literal(stringMsg.substring(nextTextIndex, completeGroup.range.first)))
+                }
+
+                val replacementComponent = if (targetedPokemon == null) {
+                    Component.literal(completeGroup.value)
+                } else {
+                    val baseString = config.baseString
+                    val pokemonDetail = Component.translatable(
+                        baseString,
+                        targetedPokemon.form.name.takeIf { it != "Normal" }
+                            ?.let { Component.translatable($$"%1$s %2$s", it, targetedPokemon.species.translatedName) }
+                            ?: targetedPokemon.species.translatedName,
+                        targetedPokemon.level,
+                        targetedPokemon.secondaryType?.let {
+                            Component.translatable(
+                                $$"%1$s/%2$s",
+                                getElementComponent(targetedPokemon.primaryType),
+                                getElementComponent(it)
+                            )
+                        } ?: getElementComponent(targetedPokemon.primaryType),
+                        config.genderMap[targetedPokemon.gender.name],
+                        Component.translatable(targetedPokemon.ability.displayName),
+                        Component.translatable(targetedPokemon.nature.displayName),
+                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.ivs, it, config.ivColors) }
+                            .toTypedArray()),
+                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.evs, it, config.evColors) }
+                            .toTypedArray()),
+                        *(Stats.PERMANENT.map {
+                            Component.translatable(config.statLabels[it.showdownId] ?: "").withStyle(
+                                ChatFormatting.getByName(
+                                    when (it) {
+                                        targetedPokemon.nature.decreasedStat -> config.negativeNatureInfluenceColor
+                                        targetedPokemon.nature.increasedStat -> config.positiveNatureInfluenceColor
+                                        else -> config.neutralNatureInfluenceColor
+                                    }
+                                ) ?: ChatFormatting.WHITE
+                            )
+                        }.toTypedArray())
+                    )
+
                     Component.translatable(
-                        $$"%1$s/%2$s",
-                        getElementComponent(targetedPokemon.primaryType),
-                        getElementComponent(it)
+                        $$"[%1$s]",
+                        targetedPokemon.getDisplayName(true)
                     )
-                } ?: getElementComponent(targetedPokemon.primaryType),
-                config.genderMap[targetedPokemon.gender.name],
-                Component.translatable(targetedPokemon.ability.displayName),
-                Component.translatable(targetedPokemon.nature.displayName),
-                *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.ivs, it, config.ivColors) }
-                    .toTypedArray()),
-                *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.evs, it, config.evColors) }
-                    .toTypedArray()),
-                *(Stats.PERMANENT.map {
-                    Component.translatable(config.statLabels[it.showdownId] ?: "").withStyle(
-                        ChatFormatting.getByName(
-                            when (it) {
-                                targetedPokemon.nature.decreasedStat -> config.negativeNatureInfluenceColor
-                                targetedPokemon.nature.increasedStat -> config.positiveNatureInfluenceColor
-                                else -> config.neutralNatureInfluenceColor
-                            }
-                        ) ?: ChatFormatting.WHITE
-                    )
-                }.toTypedArray())
-            )
+                        .withStyle(ChatFormatting.GOLD)
+                        .onHover(pokemonDetail)
+                }
 
-            evt.message = Component.translatable(
-                $$"%1$s%2$s%3$s",
-                Component.literal(stringMsg.substring(0, completeGroup.range.first)),
-                Component.translatable(
-                    $$"[%1$s]",
-                    targetedPokemon.getDisplayName(true)
-                )
-                    .withStyle(ChatFormatting.GOLD)
-                    .onHover(pokemonDetail),
-                Component.literal(stringMsg.substring(completeGroup.range.last + 1))
-            )
+                rebuiltMessage.append(replacementComponent)
+                nextTextIndex = completeGroup.range.last + 1
+            }
+
+            if (nextTextIndex < stringMsg.length) {
+                rebuiltMessage.append(Component.literal(stringMsg.substring(nextTextIndex)))
+            }
+
+            evt.message = rebuiltMessage
         }
     }
 }

@@ -1,10 +1,10 @@
 # Cobblemon Linkie
 
-v1.7.3-1.0.0
+v1.7.3-1.0
 
 [Modrinth](https://modrinth.com/mod/cobblemon-linkie)
 
-CurseForge
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/cobblemon-linkie)
 
 [GitHub](https://github.com/timinc-cobble/cobblemon-linkie)
 
@@ -32,7 +32,7 @@ Give yourself any Pokémon in your first slot. Need one? Run `/pokegive timburr`
 
 ## Known Issues
 
-- None. Why? Who’s asking?
+- v1.7.3-1.0.0 had a goof where it padded EVs by 2 instead of 3. v1.7.3-1.0.1 fixed this.
 
 ## Roadmap
 

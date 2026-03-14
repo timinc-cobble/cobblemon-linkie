@@ -92,11 +92,11 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
     fun getElementComponent(element: ElementalType): MutableComponent =
         element.displayName.plainCopy().withStyle(getElementColor(element) ?: ChatFormatting.WHITE)
 
-    fun getStatValueComponent(stats: PokemonStats, stat: Stat, colors: Map<Int, String>): MutableComponent =
+    fun getStatValueComponent(stats: PokemonStats, stat: Stat, colors: Map<Int, String>, padding: Int): MutableComponent =
         stats[stat].let { statVal ->
             Component.literal(
                 statVal.toString()
-                    .padStart(2, '0')
+                    .padStart(padding, '0')
             )
                 .withStyle(
                     ChatFormatting.getByName(
@@ -150,9 +150,9 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                         config.genderMap[targetedPokemon.gender.name],
                         Component.translatable(targetedPokemon.ability.displayName),
                         Component.translatable(targetedPokemon.nature.displayName),
-                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.ivs, it, config.ivColors) }
+                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.ivs, it, config.ivColors, 2) }
                             .toTypedArray()),
-                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.evs, it, config.evColors) }
+                        *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.evs, it, config.evColors, 3) }
                             .toTypedArray()),
                         *(Stats.PERMANENT.map {
                             Component.translatable(config.statLabels[it.showdownId] ?: "").withStyle(

@@ -1,6 +1,6 @@
 # Cobblemon Linkie
 
-v1.7.3-1.0
+v1.7.3-1.1
 
 [Modrinth](https://modrinth.com/mod/cobblemon-linkie)
 
@@ -28,11 +28,11 @@ Give yourself any Pokémon in your first slot. Need one? Run `/pokegive timburr`
 
 ## Player Help
 
-[Config Options](https://www.notion.so/Config-Options-32257e0d4afd80e1b293e581b7c6d0ff?pvs=21)
+[Config Options](https://www.notion.so/Config-Options-32457e0d4afd8193b995e77780d118f3?pvs=21)
 
 ## Known Issues
 
-- v1.7.3-1.0.0 had a goof where it padded EVs by 2 instead of 3. v1.7.3-1.0.1 fixed this.
+- None. Yet. Why? Who’s asking? 👀
 
 ## Roadmap
 

@@ -94,7 +94,6 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
 
     fun getColor(color: String) = ChatFormatting.getByName(color)?.color ?: color.hexToInt()
 
-
     fun getElementComponent(element: ElementalType): MutableComponent =
         element.displayName.plainCopy()
             .withColor(

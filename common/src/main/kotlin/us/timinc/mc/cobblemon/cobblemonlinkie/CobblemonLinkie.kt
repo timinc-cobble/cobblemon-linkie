@@ -9,6 +9,7 @@ import com.cobblemon.mod.common.api.text.onHover
 import com.cobblemon.mod.common.api.types.ElementalType
 import com.cobblemon.mod.common.api.types.ElementalTypes
 import com.cobblemon.mod.common.pokemon.Gender
+import com.cobblemon.mod.common.pokemon.Pokemon
 import com.cobblemon.mod.common.pokemon.PokemonStats
 import com.cobblemon.mod.common.util.party
 import net.minecraft.ChatFormatting
@@ -17,6 +18,7 @@ import net.minecraft.network.chat.MutableComponent
 import us.timinc.mc.cobblemon.cobblemonlinkie.event.ChatReceivedOnServerEvent
 import us.timinc.mc.cobblemon.timcore.AbstractConfig
 import us.timinc.mc.cobblemon.timcore.AbstractMod
+import us.timinc.mc.cobblemon.timcore.PokemonMatcher
 
 const val MOD_ID: String = "cobblemon_linkie"
 
@@ -51,14 +53,14 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
             Gender.MALE.name to "♂",
             Gender.FEMALE.name to "♀"
         )
-        val ivColors = mapOf(
+        val ivColors = linkedMapOf(
             0 to ChatFormatting.RED.name,
             10 to ChatFormatting.YELLOW.name,
             20 to ChatFormatting.GREEN.name,
             30 to ChatFormatting.AQUA.name,
             31 to ChatFormatting.LIGHT_PURPLE.name,
         )
-        val evColors = mapOf(
+        val evColors = linkedMapOf(
             0 to ChatFormatting.RED.name,
             100 to ChatFormatting.YELLOW.name,
             200 to ChatFormatting.GREEN.name,
@@ -76,6 +78,8 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
         val positiveNatureInfluenceColor = ChatFormatting.GREEN.name
         val negativeNatureInfluenceColor = ChatFormatting.DARK_RED.name
         val neutralNatureInfluenceColor = ChatFormatting.WHITE.name
+        val defaultChatColor = ChatFormatting.GOLD.name
+        val chatColors = linkedMapOf<String, String>()
     }
 
     object Events {
@@ -92,7 +96,12 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
     fun getElementComponent(element: ElementalType): MutableComponent =
         element.displayName.plainCopy().withStyle(getElementColor(element) ?: ChatFormatting.WHITE)
 
-    fun getStatValueComponent(stats: PokemonStats, stat: Stat, colors: Map<Int, String>, padding: Int): MutableComponent =
+    fun getStatValueComponent(
+        stats: PokemonStats,
+        stat: Stat,
+        colors: Map<Int, String>,
+        padding: Int
+    ): MutableComponent =
         stats[stat].let { statVal ->
             Component.literal(
                 statVal.toString()
@@ -107,6 +116,13 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                     ) ?: ChatFormatting.WHITE
                 )
         }
+
+    fun getChatColor(pokemon: Pokemon) = ChatFormatting.getByName(config.chatColors.firstNotNullOfOrNull { (k, v) ->
+        if (PokemonMatcher.parse(k).matches(pokemon)) v else null
+    } ?: config.defaultChatColor) ?: run {
+        debugger.debug("Unable to find default chat color ${config.defaultChatColor}.")
+        ChatFormatting.GOLD
+    }
 
     init {
         Events.PLAYER_CHAT_RECEIVED_ON_SERVER.subscribe { evt ->
@@ -127,7 +143,14 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                     ?.let { evt.sender.party().get(it - 1) }
 
                 if (completeGroup.range.first > nextTextIndex) {
-                    rebuiltMessage.append(Component.literal(stringMsg.substring(nextTextIndex, completeGroup.range.first)))
+                    rebuiltMessage.append(
+                        Component.literal(
+                            stringMsg.substring(
+                                nextTextIndex,
+                                completeGroup.range.first
+                            )
+                        )
+                    )
                 }
 
                 val replacementComponent = if (targetedPokemon == null) {
@@ -171,7 +194,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                         $$"[%1$s]",
                         targetedPokemon.getDisplayName(true)
                     )
-                        .withStyle(ChatFormatting.GOLD)
+                        .withStyle(getChatColor(targetedPokemon))
                         .onHover(pokemonDetail)
                 }
 

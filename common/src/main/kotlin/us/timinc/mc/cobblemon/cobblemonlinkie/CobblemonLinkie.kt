@@ -27,7 +27,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
     class CobblemonLinkieConfig : AbstractConfig() {
         val teamPattern: String = "\\[team#\\]"
         val baseString: String =
-            $$"%1$s %4$s Lvl. %2$s\n%3$s\n%5$s\n%6$s\n---IVS---\n%19$s %7$s | %20$s %8$s | %21$s %9$s\n%22$s %10$s | %23$s %11$s | %24$s %12$s\n---EVS---\n%19$s %13$s | %20$s %14$s | %21$s %15$s\n%22$s %16$s | %23$s %17$s | %24$s %18$s"
+            $$"%1$s %4$s Lvl. %2$s %25$s\n%3$s\n%5$s\n%6$s\n---IVS---\n%19$s %7$s | %20$s %8$s | %21$s %9$s\n%22$s %10$s | %23$s %11$s | %24$s %12$s\n---EVS---\n%19$s %13$s | %20$s %14$s | %21$s %15$s\n%22$s %16$s | %23$s %17$s | %24$s %18$s"
         val elementColors = mapOf(
             ElementalTypes.NORMAL.name to ChatFormatting.WHITE.name,
             ElementalTypes.FIRE.name to ChatFormatting.RED.name,
@@ -80,6 +80,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
         val neutralNatureInfluenceColor = ChatFormatting.WHITE.name
         val defaultChatColor = ChatFormatting.GOLD.name
         val chatColors = linkedMapOf<String, String>()
+        val shinyBit = "§e★§r"
     }
 
     object Events {
@@ -187,7 +188,8 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                                     }
                                 ) ?: ChatFormatting.WHITE
                             )
-                        }.toTypedArray())
+                        }.toTypedArray()),
+                        if (targetedPokemon.shiny) config.shinyBit else "",
                     )
 
                     Component.translatable(

@@ -16,6 +16,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import us.timinc.mc.cobblemon.cobblemonlinkie.event.ChatReceivedOnServerEvent
+import us.timinc.mc.cobblemon.cobblemonlinkie.extension.withOptionalColor
 import us.timinc.mc.cobblemon.timcore.AbstractConfig
 import us.timinc.mc.cobblemon.timcore.AbstractMod
 import us.timinc.mc.cobblemon.timcore.PokemonMatcher
@@ -92,38 +93,35 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
         )
     }
 
-    fun getColor(color: String) = ChatFormatting.getByName(color)?.color ?: color.hexToInt()
+    fun getColor(color: String) = ChatFormatting.getByName(color)?.color
+        ?: runCatching { color.hexToInt() }.getOrNull()
 
     fun getElementComponent(element: ElementalType): MutableComponent =
         element.displayName.plainCopy()
-            .withColor(
-                config.elementColors[element.name]?.let(::getColor)
-                    ?: ChatFormatting.WHITE.color!!
-            )
+            .withOptionalColor(config.elementColors[element.name]?.let(::getColor))
 
     fun getStatValueComponent(
         stats: PokemonStats,
         stat: Stat,
         colors: Map<Int, String>,
-        padding: Int
+        padding: Int,
     ): MutableComponent =
         stats[stat].let { statVal ->
             Component.literal(
                 statVal.toString()
                     .padStart(padding, '0')
             )
-                .withColor(
+                .withOptionalColor(
                     colors.keys.sorted().let { sortedKeys ->
                         colors[sortedKeys[(sortedKeys.indexOfFirst { it > (statVal ?: 0) }
                             .takeIf { it != -1 } ?: sortedKeys.size) - 1]]
-                    }?.let(::getColor) ?: ChatFormatting.WHITE.color!!
+                    }?.let(::getColor)
                 )
         }
 
-    fun getChatColor(pokemon: Pokemon) =
-        config.chatColors.firstNotNullOfOrNull { (k, v) ->
-            if (PokemonMatcher.parse(k).matches(pokemon)) v else null
-        }?.let(::getColor) ?: getColor(config.defaultChatColor)
+    fun getChatColor(pokemon: Pokemon) = getColor(config.chatColors.firstNotNullOfOrNull { (k, v) ->
+        if (PokemonMatcher.parse(k).matches(pokemon)) v else null
+    } ?: config.defaultChatColor)
 
     init {
         Events.PLAYER_CHAT_RECEIVED_ON_SERVER.subscribe { evt ->
@@ -180,7 +178,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                             .toTypedArray()),
                         *(Stats.PERMANENT.map {
                             Component.translatable(config.statLabels[it.showdownId] ?: "")
-                                .withColor(
+                                .withOptionalColor(
                                     getColor(
                                         when (it) {
                                             targetedPokemon.nature.decreasedStat -> config.negativeNatureInfluenceColor
@@ -197,7 +195,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                         $$"[%1$s]",
                         targetedPokemon.getDisplayName(true)
                     )
-                        .withColor(getChatColor(targetedPokemon))
+                        .withOptionalColor(getChatColor(targetedPokemon))
                         .onHover(pokemonDetail)
                 }
 

@@ -92,10 +92,15 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
         )
     }
 
-    fun getElementColor(element: ElementalType) = ChatFormatting.getByName(config.elementColors[element.name])
+    fun getColor(color: String) = ChatFormatting.getByName(color)?.color ?: color.hexToInt()
+
 
     fun getElementComponent(element: ElementalType): MutableComponent =
-        element.displayName.plainCopy().withStyle(getElementColor(element) ?: ChatFormatting.WHITE)
+        element.displayName.plainCopy()
+            .withColor(
+                config.elementColors[element.name]?.let(::getColor)
+                    ?: ChatFormatting.WHITE.color!!
+            )
 
     fun getStatValueComponent(
         stats: PokemonStats,
@@ -108,22 +113,18 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                 statVal.toString()
                     .padStart(padding, '0')
             )
-                .withStyle(
-                    ChatFormatting.getByName(
-                        colors.keys.sorted().let { sortedKeys ->
-                            colors[sortedKeys[(sortedKeys.indexOfFirst { it > (statVal ?: 0) }
-                                .takeIf { it != -1 } ?: sortedKeys.size) - 1]]
-                        }
-                    ) ?: ChatFormatting.WHITE
+                .withColor(
+                    colors.keys.sorted().let { sortedKeys ->
+                        colors[sortedKeys[(sortedKeys.indexOfFirst { it > (statVal ?: 0) }
+                            .takeIf { it != -1 } ?: sortedKeys.size) - 1]]
+                    }?.let(::getColor) ?: ChatFormatting.WHITE.color!!
                 )
         }
 
-    fun getChatColor(pokemon: Pokemon) = ChatFormatting.getByName(config.chatColors.firstNotNullOfOrNull { (k, v) ->
-        if (PokemonMatcher.parse(k).matches(pokemon)) v else null
-    } ?: config.defaultChatColor) ?: run {
-        debugger.debug("Unable to find default chat color ${config.defaultChatColor}.")
-        ChatFormatting.GOLD
-    }
+    fun getChatColor(pokemon: Pokemon) =
+        config.chatColors.firstNotNullOfOrNull { (k, v) ->
+            if (PokemonMatcher.parse(k).matches(pokemon)) v else null
+        }?.let(::getColor) ?: getColor(config.defaultChatColor)
 
     init {
         Events.PLAYER_CHAT_RECEIVED_ON_SERVER.subscribe { evt ->
@@ -179,15 +180,16 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                         *(Stats.PERMANENT.map { getStatValueComponent(targetedPokemon.evs, it, config.evColors, 3) }
                             .toTypedArray()),
                         *(Stats.PERMANENT.map {
-                            Component.translatable(config.statLabels[it.showdownId] ?: "").withStyle(
-                                ChatFormatting.getByName(
-                                    when (it) {
-                                        targetedPokemon.nature.decreasedStat -> config.negativeNatureInfluenceColor
-                                        targetedPokemon.nature.increasedStat -> config.positiveNatureInfluenceColor
-                                        else -> config.neutralNatureInfluenceColor
-                                    }
-                                ) ?: ChatFormatting.WHITE
-                            )
+                            Component.translatable(config.statLabels[it.showdownId] ?: "")
+                                .withColor(
+                                    getColor(
+                                        when (it) {
+                                            targetedPokemon.nature.decreasedStat -> config.negativeNatureInfluenceColor
+                                            targetedPokemon.nature.increasedStat -> config.positiveNatureInfluenceColor
+                                            else -> config.neutralNatureInfluenceColor
+                                        }
+                                    )
+                                )
                         }.toTypedArray()),
                         if (targetedPokemon.shiny) config.shinyBit else "",
                     )
@@ -196,7 +198,7 @@ object CobblemonLinkie : AbstractMod<CobblemonLinkie.CobblemonLinkieConfig>(MOD_
                         $$"[%1$s]",
                         targetedPokemon.getDisplayName(true)
                     )
-                        .withStyle(getChatColor(targetedPokemon))
+                        .withColor(getChatColor(targetedPokemon))
                         .onHover(pokemonDetail)
                 }
 

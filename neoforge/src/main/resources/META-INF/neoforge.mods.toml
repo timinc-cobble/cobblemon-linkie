@@ -1,5 +1,5 @@
 modLoader = "kotlinforforge"
-loaderVersion = "[4,)"
+loaderVersion = "[5.3,)"
 license = "MIT"
 issueTrackerURL="${modIssues}"
 
@@ -15,28 +15,24 @@ modUrl="${modSource}"
 
 [[dependencies.${modId}]]
 modId = "minecraft"
-mandatory = true
 versionRange = "[${minecraft_version}]"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${modId}]]
 modId = "neoforge"
-mandatory = true
 versionRange = "[${neoforge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${modId}]]
 modId = "cobblemon"
-mandatory = true
 versionRange = "[${cobblemon_version}]"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${modId}]]
 modId = "tim_core"
-mandatory = true
 versionRange = "[${tim_core_neoforge_version},)"
 ordering = "NONE"
 side = "BOTH"
